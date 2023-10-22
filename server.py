@@ -1,6 +1,7 @@
 from flask import Flask, render_template, session,request,redirect
 from flask_session import Session
 import requests
+from datetime import timedelta
 
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
@@ -11,6 +12,12 @@ Session(app)
 #end_point_sgr="https://homsgrapi.azurewebsites.net/api/validar-token/"
 
 end_point_sgr="http://192.168.1.18:8000/api/validar-token"
+tempo_sessao=12 # 12 horas
+
+@app.before_request
+def before_request():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(hours=tempo_sessao)
 
 @app.route('/')
 def index():
@@ -33,12 +40,13 @@ def auth():
   
   if response.status_code == 200:
     success             = json_data["success"]
+
     if(success):
       session["regional"] = json_data["regional"]
       session["nome"]     = json_data["nome"]
       
-    if(success):
-       return redirect("/dashboard")
+      return redirect("/dashboard")
+    
     else:
       return render_template('acesso-negado.html')
   else:
